@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-// import { useEffect } from 'react';
+import { useEffect } from 'react';
 
 import { createPortal } from 'react-dom'; //використовуємо для створення <div id="modal-root"></div>
 
@@ -8,11 +8,18 @@ import { Backdrop, ModalWrap } from './Modal.styled';
 const modalRoot = document.querySelector('#modal_root');
 
 export default function Modal({ onClose, children }) {
-  // useEffect() {
-  //   // console.log('Modal componentDidMount');
-  //   document.body.style.overflow = 'hidden';
-  //   window.addEventListener('keydown', handleKeyDown);
-  // }
+  useEffect(() => {
+    const handleKeyDown = e => {
+      if (e.code === 'Escape') {
+        onClose();
+      }
+    };
+    // console.log('Modal componentDidMount');
+    if (onClose) {
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+    }
+  }, [onClose]);
 
   // useEffect() {
   //   // console.log('Modal componentWillUnmount');
@@ -20,11 +27,7 @@ export default function Modal({ onClose, children }) {
   //   document.body.style.overflow = 'scroll';
   // }
 
-  // const handleKeyDown = e => {
-  //   if (e.code === 'Escape') {
-  //     onClose();
-  //   }
-  // };
+  //
 
   const handleBackdropClick = event => {
     // console.log('Кликнули в бекдроп');

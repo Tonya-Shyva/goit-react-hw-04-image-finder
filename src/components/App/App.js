@@ -14,6 +14,7 @@ import SearchBar from 'components/Searchbar/Searchbar';
 import Loader from 'components/Loader/Loader';
 import Button from 'components/Button/Button';
 
+const INFO_MSG = 'Please, enter another search value!';
 export function App() {
   const [searchValue, setSearchValue] = useState('');
   const [pageNumber, setPageNumber] = useState(1);
@@ -41,7 +42,7 @@ export function App() {
     isLoading.current = false;
     // console.log(response);
     if (response.totalHits === 0) {
-      toast.info('Please, enter another search value!');
+      toast.info(INFO_MSG);
       isHide.current = true;
       setSearchValue('');
     }
