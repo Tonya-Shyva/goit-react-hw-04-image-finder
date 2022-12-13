@@ -25,13 +25,12 @@ function SearchBar({ onFormSubmit }) {
     event.preventDefault();
 
     if (searchValue.trim() === '') {
-      // alert('Please, enter search value!');
       toast.error('Please, enter search value!');
       return;
     }
 
     onFormSubmit(searchValue);
-    setSearchValue('');
+    // setSearchValue('');
   };
 
   return (

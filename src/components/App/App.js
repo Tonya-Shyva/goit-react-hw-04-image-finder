@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useRef } from 'react';
 
 // контейнер для error повідомлень--------------------
 import { ToastContainer } from 'react-toastify';
@@ -14,105 +14,90 @@ import SearchBar from 'components/Searchbar/Searchbar';
 import Loader from 'components/Loader/Loader';
 import Button from 'components/Button/Button';
 
-export class App extends Component {
-  state = {
-    searchValue: '',
-    pageNumber: 1,
-    images: [],
-    isLoading: false,
-    selectedImg: null,
-    modalImgAlt: '',
-    hide: true,
-  };
+export function App() {
+  const [searchValue, setSearchValue] = useState('');
+  const [pageNumber, setPageNumber] = useState(1);
+  const [images, setImages] = useState([]);
+  const [modalImgAlt, setModalImgAlt] = useState('');
+  const [selectedImg, setSelectedImg] = useState(null);
+  const isLoading = useRef(false);
+  const isHide = useRef(true);
 
-  handleSubmit = async e => {
+  const handleSubmit = async e => {
     // console.log(e);
-    this.setState({ isLoading: true, images: [], hide: true, pageNumber: 1 });
-    if (e.trim() === '') {
-      return;
-    }
-    const response = await getImagesApi(e, 1);
-    // console.log(response);
-    if (response.hits.length === 0) {
-      toast.info('Please, enter another search value!');
-      return this.setState({ hide: true, isLoading: false });
-    } else {
-      this.setState({
-        images: response.hits,
-        isLoading: false,
-        pageNumber: 1,
-        hide: false,
-      });
-      if (response.hits.length < 12) {
-        return this.setState({ hide: true });
-      }
-    }
+    setImages([]);
+    setPageNumber(1);
+    setSearchValue('');
 
-    this.setState({
-      images: response.hits,
-      isLoading: false,
-      searchValue: e,
-      pageNumber: 1,
-      hide: false,
-    });
+    isHide.current = true;
+    isLoading.current = true;
+
+    const response = await getImagesApi(e, 1);
+    toast.success(`We found ${response.totalHits} images and photos`);
+    setImages(response.hits);
+    setSearchValue(e);
+    setPageNumber(1);
+    isHide.current = false;
+    isLoading.current = false;
+    // console.log(response);
+    if (response.totalHits === 0) {
+      toast.info('Please, enter another search value!');
+      isHide.current = true;
+      setSearchValue('');
+    }
+    if (response.totalHits < 12 && response.totalHits > 0) {
+      isHide.current = true;
+    }
   };
 
-  handleLoadMore = async () => {
-    const { searchValue, pageNumber, images } = this.state;
-
-    this.setState({ isLoading: true });
+  const handleLoadMore = async () => {
+    isLoading.current = true;
     const response = await getImagesApi(searchValue, pageNumber + 1);
 
-    this.setState(prevState => ({
-      images: [...prevState.images, ...response.hits],
-      pageNumber: pageNumber + 1,
-      isLoading: false,
-    }));
+    setImages([...images, ...response.hits]);
+    setPageNumber(pageNumber + 1);
+    isLoading.current = false;
+    isHide.current = false;
 
-    if (images.length === response.totalHits) {
-      this.setState({ hide: true });
+    if (images.length === response.totalHits ?? response.hits.length < 12) {
+      isHide.current = true;
+      // setSearchValue('');
     }
 
-    if (response.hits.length < 12) {
-      this.setState({ hide: true });
-    }
+    // if (response.hits.length < 12) {
+    //   isHide.current = true;
+    //   setSearchValue('');
+    // }
   };
 
-  selectImg = (imgUrl, altTag) => {
-    this.setState({ selectedImg: imgUrl, modalImgAlt: altTag });
+  const selectImg = (imgUrl, altTag) => {
+    setSelectedImg(imgUrl);
+    setModalImgAlt(altTag);
   };
 
-  closeModal = () => {
-    this.setState({
-      selectedImg: '',
-      modalImgAlt: '',
-    });
+  const closeModal = () => {
+    setSelectedImg('');
+    setModalImgAlt('');
   };
 
-  render() {
-    const { images, selectedImg, modalImgAlt, isLoading, hide } = this.state;
-    return (
-      <AppContainer>
-        <SearchBar onFormSubmit={this.handleSubmit}></SearchBar>
+  return (
+    <AppContainer>
+      <SearchBar onFormSubmit={handleSubmit}></SearchBar>
+      {isLoading.current && <Loader />}
+      {images.length !== 0 ? (
+        <React.Fragment>
+          <ImageGallery images={images} onSelect={selectImg}></ImageGallery>
+          {isLoading.current && <Loader />}
+          {!isHide.current && <Button onClick={handleLoadMore} />}
+        </React.Fragment>
+      ) : null}
 
-        {images !== [] ? (
-          <React.Fragment>
-            <ImageGallery
-              images={images}
-              onSelect={this.selectImg}
-            ></ImageGallery>
-            {isLoading && <Loader />}
-            {!hide && <Button onClick={this.handleLoadMore} />}
-          </React.Fragment>
-        ) : null}
-
-        {selectedImg && (
-          <Modal onClose={this.closeModal}>
-            <img src={selectedImg} alt={modalImgAlt} />
-          </Modal>
-        )}
-        <ToastContainer autoClose={2000} position="top-left" theme="dark" />
-      </AppContainer>
-    );
-  }
+      {selectedImg && (
+        <Modal onClose={closeModal}>
+          <img src={selectedImg} alt={modalImgAlt} />
+        </Modal>
+      )}
+      <ToastContainer autoClose={3000} position="top-left" theme="dark" />
+    </AppContainer>
+  );
 }
