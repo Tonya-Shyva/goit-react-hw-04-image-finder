@@ -43,6 +43,7 @@ export function App() {
     if (response.totalHits === 0) {
       toast.info('Please, enter another search value!');
       isHide.current = true;
+      setSearchValue('');
     }
     if (
       response.totalHits < 12 &&
@@ -84,19 +85,15 @@ export function App() {
   return (
     <AppContainer>
       <SearchBar onFormSubmit={handleSubmit}></SearchBar>
-      {searchValue === '' ? (
-        <p>Let's begin to search</p>
+      {searchValue === '' && isLoading.current && pageNumber === 1 ? (
+        <Loader />
       ) : (
         <React.Fragment>
-          {isLoading.current && pageNumber === 1 ? (
-            <Loader />
-          ) : (
-            <React.Fragment>
-              <ImageGallery images={images} onSelect={selectImg}></ImageGallery>
-              {isLoading.current && pageNumber > 1 && <Loader />}
-              {!isHide.current && <Button onClick={handleLoadMore} />}
-            </React.Fragment>
+          {searchValue !== '' && (
+            <ImageGallery images={images} onSelect={selectImg}></ImageGallery>
           )}
+          {isLoading.current && pageNumber > 1 && <Loader />}
+          {!isHide.current && <Button onClick={handleLoadMore} />}
         </React.Fragment>
       )}
 
