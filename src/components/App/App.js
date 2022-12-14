@@ -14,7 +14,6 @@ import SearchBar from 'components/Searchbar/Searchbar';
 import Loader from 'components/Loader/Loader';
 import Button from 'components/Button/Button';
 
-const INFO_MSG = 'Please, enter another search value!';
 export function App() {
   const [searchValue, setSearchValue] = useState('');
   const [pageNumber, setPageNumber] = useState(1);
@@ -37,23 +36,28 @@ export function App() {
     toast.success(`We found ${response.totalHits} images and photos`);
     setImages(response.hits);
     setSearchValue(e);
-    setPageNumber(1);
+    setPageNumber(2);
     isHide.current = false;
     isLoading.current = false;
     // console.log(response);
     if (response.totalHits === 0) {
-      toast.info(INFO_MSG);
+      toast.info('Please, enter another search value!');
       isHide.current = true;
-      setSearchValue('');
     }
-    if (response.totalHits < 12 && response.totalHits > 0) {
+    if (
+      response.totalHits < 12 &&
+      response.totalHits > 0 &&
+      response.totalHits === response.total
+    ) {
       isHide.current = true;
     }
   };
 
   const handleLoadMore = async () => {
     isLoading.current = true;
-    const response = await getImagesApi(searchValue, pageNumber + 1);
+    setImages([...images]);
+
+    const response = await getImagesApi(searchValue, pageNumber);
 
     setImages([...images, ...response.hits]);
     setPageNumber(pageNumber + 1);
@@ -62,36 +66,39 @@ export function App() {
 
     if (images.length === response.totalHits ?? response.hits.length < 12) {
       isHide.current = true;
-      // setSearchValue('');
     }
-
-    // if (response.hits.length < 12) {
-    //   isHide.current = true;
-    //   setSearchValue('');
-    // }
   };
 
   const selectImg = (imgUrl, altTag) => {
     setSelectedImg(imgUrl);
     setModalImgAlt(altTag);
+    document.body.style.overflow = 'hidden';
   };
 
   const closeModal = () => {
     setSelectedImg('');
     setModalImgAlt('');
+    document.body.style.overflow = 'scroll';
   };
 
   return (
     <AppContainer>
       <SearchBar onFormSubmit={handleSubmit}></SearchBar>
-      {isLoading.current && <Loader />}
-      {images.length !== 0 ? (
+      {searchValue === '' ? (
+        <p>Let's begin to search</p>
+      ) : (
         <React.Fragment>
-          <ImageGallery images={images} onSelect={selectImg}></ImageGallery>
-          {isLoading.current && <Loader />}
-          {!isHide.current && <Button onClick={handleLoadMore} />}
+          {isLoading.current && pageNumber === 1 ? (
+            <Loader />
+          ) : (
+            <React.Fragment>
+              <ImageGallery images={images} onSelect={selectImg}></ImageGallery>
+              {isLoading.current && pageNumber > 1 && <Loader />}
+              {!isHide.current && <Button onClick={handleLoadMore} />}
+            </React.Fragment>
+          )}
         </React.Fragment>
-      ) : null}
+      )}
 
       {selectedImg && (
         <Modal onClose={closeModal}>

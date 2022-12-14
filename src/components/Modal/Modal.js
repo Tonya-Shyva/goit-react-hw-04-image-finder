@@ -12,22 +12,12 @@ export default function Modal({ onClose, children }) {
     const handleKeyDown = e => {
       if (e.code === 'Escape') {
         onClose();
+        window.removeEventListener('keydown', handleKeyDown);
       }
     };
-    // console.log('Modal componentDidMount');
-    if (onClose) {
-      document.body.style.overflow = 'hidden';
-      window.addEventListener('keydown', handleKeyDown);
-    }
+
+    window.addEventListener('keydown', handleKeyDown);
   }, [onClose]);
-
-  // useEffect() {
-  //   // console.log('Modal componentWillUnmount');
-  //   window.removeEventListener('keydown', handleKeyDown);
-  //   document.body.style.overflow = 'scroll';
-  // }
-
-  //
 
   const handleBackdropClick = event => {
     // console.log('Кликнули в бекдроп');
