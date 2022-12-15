@@ -61,7 +61,7 @@ export function App() {
     const response = await getImagesApi(searchValue, pageNumber);
 
     setImages([...images, ...response.hits]);
-    setPageNumber(pageNumber + 1);
+    setPageNumber(prevPage => prevPage + 1);
     isLoading.current = false;
     isHide.current = false;
 
