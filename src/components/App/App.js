@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 
 // контейнер для error повідомлень--------------------
 import { ToastContainer } from 'react-toastify';
@@ -20,8 +20,8 @@ export function App() {
   const [images, setImages] = useState([]);
   const [modalImgAlt, setModalImgAlt] = useState('');
   const [selectedImg, setSelectedImg] = useState(null);
-  const isLoading = useRef(false);
-  const isHide = useRef(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isHide, setIsHide] = useState(true);
 
   const handleSubmit = async e => {
     // console.log(e);
@@ -29,20 +29,20 @@ export function App() {
     setPageNumber(1);
     setSearchValue('');
 
-    isHide.current = true;
-    isLoading.current = true;
+    setIsHide(true);
+    setIsLoading(true);
 
     const response = await getImagesApi(e, 1);
     toast.success(`We found ${response.totalHits} images and photos`);
     setImages(response.hits);
     setSearchValue(e);
     setPageNumber(2);
-    isHide.current = false;
-    isLoading.current = false;
+    setIsHide(false);
+    setIsLoading(false);
     // console.log(response);
     if (response.totalHits === 0) {
       toast.info('Please, enter another search value!');
-      isHide.current = true;
+      setIsHide(true);
       setSearchValue('');
     }
     if (
@@ -50,23 +50,23 @@ export function App() {
       response.totalHits > 0 &&
       response.totalHits === response.total
     ) {
-      isHide.current = true;
+      setIsHide(true);
     }
   };
 
   const handleLoadMore = async () => {
-    isLoading.current = true;
+    setIsLoading(true);
     setImages([...images]);
 
     const response = await getImagesApi(searchValue, pageNumber);
 
     setImages([...images, ...response.hits]);
     setPageNumber(prevPage => prevPage + 1);
-    isLoading.current = false;
-    isHide.current = false;
+    setIsLoading(false);
+    setIsHide(false);
 
-    if (images.length === response.totalHits ?? response.hits.length < 12) {
-      isHide.current = true;
+    if (images.length === response.totalHits || response.hits.length < 12) {
+      setIsHide(true);
     }
   };
 
@@ -85,15 +85,15 @@ export function App() {
   return (
     <AppContainer>
       <SearchBar onFormSubmit={handleSubmit}></SearchBar>
-      {searchValue === '' && isLoading.current && pageNumber === 1 ? (
+      {searchValue === '' && isLoading && pageNumber === 1 ? (
         <Loader />
       ) : (
         <React.Fragment>
           {searchValue !== '' && (
             <ImageGallery images={images} onSelect={selectImg}></ImageGallery>
           )}
-          {isLoading.current && pageNumber > 1 && <Loader />}
-          {!isHide.current && <Button onClick={handleLoadMore} />}
+          {isLoading && pageNumber > 1 && <Loader />}
+          {!isHide && <Button onClick={handleLoadMore} />}
         </React.Fragment>
       )}
 
